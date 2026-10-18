@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Login or Register to SmartCare Hospital Appointment System">
+  <title>Login - SmartCare</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon">+</div>
+        <span>SmartCare</span>
+      </a>
+      <div class="nav-links">
+        <a href="doctors.html">Available Doctors</a>
+        <a href="patient.html" id="navPatientLink">Patient</a>
+        <a href="admin.html">Admin</a>
+      </div>
+      <div class="hamburger" id="hamburger">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Login Page Content -->
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-card-header">
+        <div class="login-logo">+</div>
+        <h2>Welcome to SmartCare</h2>
+        <p>Login or create an account to manage your appointments</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="login-tabs">
+        <button type="button" class="login-tab-btn active" onclick="switchLoginTab('login')"
+          id="loginTabBtn">Login</button>
+        <button type="button" class="login-tab-btn" onclick="switchLoginTab('register')"
+          id="registerTabBtn">Register</button>
+      </div>
+
+      <!-- Login Form -->
+      <form class="login-form active" id="loginForm">
+        <div class="form-group">
+          <label for="loginEmail">Email Address</label>
+          <input type="email" id="loginEmail" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="loginPass">Password</label>
+          <input type="password" id="loginPass" placeholder="Enter your password" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="loginSubmitBtn">Login</button>
+        <p class="login-error" id="loginError">Invalid email or password. Please try again.</p>
+      </form>
+
+      <!-- Register Form -->
+      <form class="login-form" id="registerForm">
+        <div class="form-group">
+          <label for="regName">Full Name</label>
+          <input type="text" id="regName" placeholder="Enter your full name" required>
+        </div>
+        <div class="form-group">
+          <label for="regEmail">Email Address</label>
+          <input type="email" id="regEmail" placeholder="you@example.com" required>
+        </div>
+        <div class="form-group">
+          <label for="regPhone">Phone Number</label>
+          <input type="tel" id="regPhone" placeholder="+1 (555) 000-0000" required>
+        </div>
+        <div class="form-group">
+          <label for="regPass">Password</label>
+          <input type="password" id="regPass" placeholder="Create a password" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="registerSubmitBtn">Create Account</button>
+        <p class="login-error" id="registerError"></p>
+      </form>
+
+      <div class="login-divider">or</div>
+      <p class="admin-link">Admin? <a href="admin.html">Login to Admin Dashboard &rarr;</a></p>
+    </div>
+  </div>
+
+  <!-- Supabase JS Client v2 & Config -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js?v=3.1"></script>
+  <script src="script.js?v=3.1"></script>
+  <script>
+    // If patient is already authenticated, redirect to patient portal
+    if (typeof isPatientActive === 'function' && isPatientActive()) {
+      window.location.replace('patient.html');
+    }
+
+    function switchLoginTab(tab) {
+      document.querySelectorAll('.login-tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.login-form').forEach(f => f.classList.remove('active'));
+      const loginErr = document.getElementById('loginError');
+      const regErr = document.getElementById('registerError');
+      if (loginErr) loginErr.style.display = 'none';
+      if (regErr) regErr.style.display = 'none';
+
+      if (tab === 'login') {
+        document.getElementById('loginTabBtn').classList.add('active');
+        document.getElementById('loginForm').classList.add('active');
+      } else {
+        document.getElementById('registerTabBtn').classList.add('active');
+        document.getElementById('registerForm').classList.add('active');
+      }
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value.trim();
+      const pass = document.getElementById('loginPass').value.trim();
+      const btn = document.getElementById('loginSubmitBtn');
+      const errEl = document.getElementById('loginError');
+
+      if (!email || !pass) {
+        showToast('Please fill in all fields', 'error');
+        return;
+      }
+
+      if (errEl) errEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Logging in...';
+
+      try {
+        if (typeof isSupabaseConfigured === 'function' && isSupabaseConfigured() && supabaseClient) {
+          const { data, error } = await supabaseClient.auth.signInWithPassword({
+            email: email,
+            password: pass
+          });
+
+          if (error) {
+            btn.disabled = false;
+            btn.textContent = 'Login';
+            if (errEl) {
+              errEl.textContent = error.message || 'Invalid email or password.';
+              errEl.style.display = 'block';
+            }
+            showToast(error.message || 'Login failed', 'error');
+            return;
+          }
+
+          const user = data.user;
+          let patientName = user?.user_metadata?.full_name || '';
+
+          // Fetch patient profile if available
+          try {
+            const { data: patient } = await supabaseClient
+              .from('patients')
+              .select('id, full_name, phone')
+              .eq('full_name', patientName)
+              .maybeSingle();
+            if (patient && patient.full_name) {
+              patientName = patient.full_name;
+              sessionStorage.setItem('patientDbId', patient.id);
+            }
+          } catch (profileErr) {
+            console.warn('Patient fetch note:', profileErr);
+          }
+
+          sessionStorage.setItem('patientLoggedIn', 'true');
+          sessionStorage.setItem('patientEmail', user.email);
+          sessionStorage.setItem('patientName', patientName);
+          sessionStorage.setItem('patientId', user.id);
+          showToast('Login successful! Welcome back.', 'success');
+          setTimeout(() => { window.location.href = 'patient.html'; }, 800);
+        } else {
+          // LocalStorage fallback for testing before Supabase keys are inserted
+          sessionStorage.setItem('patientLoggedIn', 'true');
+          sessionStorage.setItem('patientEmail', email);
+          showToast('Login successful! (LocalStorage mode)', 'success');
+          setTimeout(() => { window.location.href = 'patient.html'; }, 800);
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Login';
+        if (errEl) {
+          errEl.textContent = err.message || 'An unexpected error occurred.';
+          errEl.style.display = 'block';
+        }
+        showToast(err.message || 'Login error', 'error');
+      }
+    });
+
+    document.getElementById('registerForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const phone = document.getElementById('regPhone').value.trim();
+      const pass = document.getElementById('regPass').value.trim();
+      const btn = document.getElementById('registerSubmitBtn');
+      const errEl = document.getElementById('registerError');
+
+      if (!name || !email || !phone || !pass) {
+        showToast('Please fill in all fields', 'error');
+        return;
+      }
+
+      if (pass.length < 6) {
+        showToast('Password must be at least 6 characters', 'error');
+        return;
+      }
+
+      if (errEl) errEl.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Creating account...';
+
+      try {
+        if (typeof isSupabaseConfigured === 'function' && isSupabaseConfigured() && supabaseClient) {
+          // 1. Insert into Supabase patients table
+          let patientDbId = null;
+          try {
+            const { data: newPat, error: patErr } = await supabaseClient
+              .from('patients')
+              .insert([{
+                full_name: name,
+                phone: phone
+              }])
+              .select();
+
+            if (newPat && newPat[0]) {
+              patientDbId = newPat[0].id;
+              sessionStorage.setItem('patientDbId', patientDbId);
+            }
+          } catch (pErr) {
+            console.warn('Patients table insert note:', pErr);
+          }
+
+          // 2. Register account with Supabase Auth
+          const { data, error } = await supabaseClient.auth.signUp({
+            email: email,
+            password: pass,
+            options: {
+              data: {
+                full_name: name,
+                phone: phone
+              }
+            }
+          });
+
+          if (error) {
+            console.warn('Supabase auth signup note:', error);
+            if (error.message && !error.message.includes('confirm')) {
+              btn.disabled = false;
+              btn.textContent = 'Create Account';
+              if (errEl) {
+                errEl.textContent = error.message;
+                errEl.style.display = 'block';
+              }
+              showToast(error.message, 'error');
+              return;
+            }
+          }
+
+          const user = data?.user;
+          sessionStorage.setItem('patientLoggedIn', 'true');
+          sessionStorage.setItem('patientEmail', email);
+          sessionStorage.setItem('patientName', name);
+          sessionStorage.setItem('patientPhone', phone);
+          if (user) {
+            sessionStorage.setItem('patientId', user.id);
+          }
+
+          showToast('Account created successfully in Supabase!', 'success');
+          setTimeout(() => { window.location.href = 'patient.html'; }, 800);
+        } else {
+          // LocalStorage fallback for demo
+          const patients = getPatients();
+          if (!patients.includes(name)) {
+            patients.push(name);
+            savePatients(patients);
+          }
+          sessionStorage.setItem('patientLoggedIn', 'true');
+          sessionStorage.setItem('patientEmail', email);
+          sessionStorage.setItem('patientName', name);
+          showToast('Account created! (LocalStorage mode)', 'success');
+          setTimeout(() => { window.location.href = 'patient.html'; }, 800);
+        }
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Create Account';
+        if (errEl) {
+          errEl.textContent = err.message || 'An unexpected error occurred.';
+          errEl.style.display = 'block';
+        }
+        showToast(err.message || 'Registration error', 'error');
+      }
+    });
+  </script>
+</body>
+
+</html>

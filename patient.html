@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Patient Portal - Manage appointments, health records and more.">
+  <title>Patient Portal - SmartCare</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon">+</div>
+        <span>SmartCare</span>
+      </a>
+      <div class="nav-links">
+        <a href="doctors.html">Available Doctors</a>
+        <a href="patient.html" class="active" id="navPatientLink">Patient</a>
+        <a href="admin.html">Admin</a>
+        <a href="#" class="nav-login-btn" id="patientLogoutNav" onclick="patientLogout()" style="display:none;">Logout</a>
+      </div>
+      <div class="hamburger" id="hamburger">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="dashboard-layout">
+    <!-- Main Content -->
+    <main class="dashboard-main">
+
+      <!-- Active Patient Banner -->
+      <div class="patient-banner" id="activePatientBanner" style="display:none;">
+        <div class="patient-banner-info">
+          <span class="patient-id-badge" id="patientIdBadge">PID: #--</span>
+          <span class="patient-banner-name" id="patientBannerName">Patient Name</span>
+          <span class="patient-banner-meta" id="patientBannerMeta">+1 (555) 000-0000</span>
+        </div>
+      </div>
+
+      <!-- Patient Entry Section (When Patient Not Yet Identified) -->
+      <div class="dashboard-section" id="patientEntrySection">
+        <div class="patient-entry-container">
+          <div class="patient-entry-header">
+            <h2>Welcome to SmartCare</h2>
+            <p>Please register as a new patient or verify your identity to proceed</p>
+          </div>
+
+          <!-- Segmented Tabs -->
+          <div class="patient-tabs">
+            <button type="button" class="patient-tab-btn active" id="pageNewPatientTab" onclick="switchEntryTab('new', 'page')">New Patient</button>
+            <button type="button" class="patient-tab-btn" id="pageExistingPatientTab" onclick="switchEntryTab('existing', 'page')">Existing Patient</button>
+          </div>
+
+          <!-- New Patient Form -->
+          <form class="patient-form-panel active" id="pageNewPatientForm">
+            <div class="form-group" style="margin-bottom:0.85rem;">
+              <label for="pageNewName">Full Name *</label>
+              <input type="text" id="pageNewName" placeholder="e.g. John Doe" required>
+              <span class="form-feedback" id="pageNewNameErr">Please enter your full name (at least 2 characters).</span>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0.85rem;">
+              <div class="form-group">
+                <label for="pageNewAge">Age *</label>
+                <input type="number" id="pageNewAge" min="1" max="120" placeholder="e.g. 35" required>
+                <span class="form-feedback" id="pageNewAgeErr">Enter a valid age (1-120).</span>
+              </div>
+              <div class="form-group">
+                <label for="pageNewGender">Gender *</label>
+                <select id="pageNewGender" required>
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+                <span class="form-feedback" id="pageNewGenderErr">Please select a gender.</span>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0.85rem;">
+              <label for="pageNewPhone">Phone Number *</label>
+              <input type="tel" id="pageNewPhone" placeholder="e.g. +1 (555) 123-4567" required>
+              <span class="form-feedback" id="pageNewPhoneErr">Please enter a valid phone number.</span>
+            </div>
+
+            <div class="form-group" style="margin-bottom:0.85rem;">
+              <label for="pageNewEmail">Email Address (Optional)</label>
+              <input type="email" id="pageNewEmail" placeholder="you@example.com">
+              <span class="form-feedback" id="pageNewEmailErr">Please enter a valid email address format.</span>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1.25rem;">
+              <label for="pageNewPin">Security PIN (4-6 digits) *</label>
+              <input type="password" id="pageNewPin" maxlength="6" placeholder="Create a 4-6 digit secret PIN" required>
+              <span class="form-feedback" id="pageNewPinErr">PIN must be 4 to 6 digits (required to verify identity when returning).</span>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="pageNewSubmitBtn" style="width:100%;justify-content:center;padding:10px;">Register &amp; Select Doctor</button>
+          </form>
+
+          <!-- Existing Patient Form -->
+          <form class="patient-form-panel" id="pageExistingPatientForm">
+            <div class="form-group" style="margin-bottom:0.85rem;">
+              <label for="pageExistId">Patient ID *</label>
+              <input type="text" id="pageExistId" placeholder="e.g. 101 or PID-101" required>
+              <span class="form-feedback" id="pageExistIdErr">Please enter your assigned numeric Patient ID.</span>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1.25rem;">
+              <label for="pageExistPin">Security PIN *</label>
+              <input type="password" id="pageExistPin" maxlength="6" placeholder="Enter your 4-6 digit secret PIN" required>
+              <span class="form-feedback" id="pageExistPinErr">Please enter your secret PIN.</span>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="pageExistSubmitBtn" style="width:100%;justify-content:center;padding:10px;">Verify Identity &amp; Continue</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- My Appointments Section -->
+      <div class="dashboard-section active" id="appointmentsSection">
+        <div class="dash-header">
+          <h1>My Appointments</h1>
+          <button class="btn btn-primary" onclick="showSection('bookingSection')" id="bookNewBtn">+ Book Appointment</button>
+        </div>
+
+
+
+        <!-- Appointments List -->
+        <div class="form-section">
+          <h2>Appointment History</h2>
+          <div id="appointmentsList" class="appointments-list"></div>
+        </div>
+      </div>
+
+      <!-- Health Records Section -->
+      <div class="dashboard-section" id="healthSection">
+        <h1>Health Records</h1>
+        <div class="form-section" style="margin-top:1.5rem;">
+          <h2>Your Records</h2>
+          <p style="color:var(--text-muted);padding:2rem;text-align:center;">No health records available yet. Records will appear after your first completed consultation.</p>
+        </div>
+      </div>
+
+      <!-- Reminders Section -->
+      <div class="dashboard-section" id="remindersSection">
+        <h1>Reminders</h1>
+        <div class="form-section" style="margin-top:1.5rem;">
+          <h2>All Reminders</h2>
+          <div id="allRemindersList"></div>
+        </div>
+      </div>
+
+      <!-- Settings Section -->
+      <div class="dashboard-section" id="settingsSection">
+        <h1>Settings</h1>
+        <div class="form-section" style="margin-top:1.5rem;">
+          <h2>Account Settings</h2>
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Full Name</label>
+              <input type="text" placeholder="Enter your name" id="settingsName">
+            </div>
+            <div class="form-group">
+              <label>Age</label>
+              <input type="number" placeholder="Your age" id="settingsAge">
+            </div>
+            <div class="form-group">
+              <label>Gender</label>
+              <select id="settingsGender">
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" placeholder="you@example.com" id="settingsEmail">
+            </div>
+            <div class="form-group">
+              <label>Phone</label>
+              <input type="tel" placeholder="+1 (555) 000-0000" id="settingsPhone">
+            </div>
+          </div>
+          <br>
+          <button class="btn btn-primary" onclick="savePatientSettings()">Save Changes</button>
+        </div>
+      </div>
+
+      <!-- Booking Section (Vertical Single-Page Booking Flow) -->
+      <div class="dashboard-section" id="bookingSection">
+        <div class="dash-header">
+          <h1>Book an Appointment</h1>
+          <button class="btn btn-outline btn-sm" onclick="showSection('appointmentsSection')">&larr; My Appointments</button>
+        </div>
+
+        <div id="bookingFormWrapper">
+          <!-- Step 1: Select Doctor -->
+          <div class="booking-vertical-section" id="bookingDoctorSection">
+            <div class="section-subtitle">
+              <h2>Select Doctor</h2>
+              <p style="color:var(--text-muted);font-size:0.85rem;">Click on any doctor card below to select your specialist</p>
+            </div>
+            <div class="doctors-grid" id="bookingDoctorsGrid" style="margin-top:0.75rem;"></div>
+          </div>
+
+          <!-- Step 2: Choose Time (Directly below Doctor Selection) -->
+          <div class="booking-vertical-section" id="bookingTimeSection">
+            <div class="section-subtitle">
+              <h2 id="step2Title">Choose Time</h2>
+              <p style="color:var(--text-muted);font-size:0.85rem;" id="step2Sub">Select your preferred appointment date and available time slot</p>
+            </div>
+            <div class="form-grid" style="margin-top:1rem;">
+              <div class="form-group">
+                <label for="apptDate">Appointment Date *</label>
+                <input type="date" id="apptDate" required>
+              </div>
+              <div class="form-group" style="grid-column: 1 / -1;">
+                <label>Available Time Slots *</label>
+                <div class="time-slots" id="timeSlots"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3: Confirm (Below Time Selection) -->
+          <div class="booking-vertical-section" id="bookingConfirmSection">
+            <div class="section-subtitle">
+              <h2>Confirm Appointment</h2>
+              <p style="color:var(--text-muted);font-size:0.85rem;">Review your booking details, patient information, and confirm</p>
+            </div>
+
+            <!-- Booking Summary -->
+            <div class="confirm-details" id="confirmDetails" style="margin-top:1rem;">
+              <p><strong>Doctor:</strong> <span id="summaryDoctorName">None selected (please select a doctor above)</span></p>
+              <p><strong>Specialization:</strong> <span id="summaryDoctorSpec">--</span></p>
+              <p><strong>Appointment Date:</strong> <span id="summaryDate">Not selected</span></p>
+              <p><strong>Time Slot:</strong> <span id="summaryTime">Not selected</span></p>
+            </div>
+            
+            <!-- Patient Details (from verified session) -->
+            <div style="background:var(--primary-lighter);border:1px solid var(--border);border-radius:var(--radius-sm);padding:0.85rem;margin:1rem 0;">
+              <p style="font-size:0.88rem;margin-bottom:4px;"><strong>Registered Patient:</strong> <span id="confirmPatientName">--</span></p>
+              <p style="font-size:0.82rem;color:var(--text-muted);margin:0;"><strong>Patient ID:</strong> <span id="confirmPatientId">#--</span> &bull; <strong>Contact:</strong> <span id="confirmPatientPhone">--</span></p>
+              <input type="hidden" id="patientName">
+            </div>
+
+            <!-- Visit Reason -->
+            <div class="form-group" style="margin-bottom:1.25rem;">
+              <label for="visitReason">Reason for Visit (Optional)</label>
+              <textarea id="visitReason" placeholder="Describe your symptoms or reason for consultation..." rows="3" class="form-textarea"></textarea>
+            </div>
+
+            <!-- Final Confirmation Button -->
+            <div style="margin-top:1.25rem;">
+              <button class="btn btn-primary" id="confirmBooking" onclick="confirmBooking()" style="padding:10px 24px;font-size:0.95rem;">Confirm Booking</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Booking Confirmed View (Shown after confirmation) -->
+        <div id="bookingStepConfirmed" style="display:none;">
+          <div class="booking-confirmation-card">
+            <div class="booking-confirmation-header">
+              <span class="confirmation-tag">Booking Confirmed</span>
+              <h2>Your Appointment is Booked!</h2>
+              <p style="color:var(--text-muted);font-size:0.88rem;">Your appointment has been registered in the hospital database.</p>
+              <div class="appointment-id-display" id="confirmedApptId">Appointment ID: #--</div>
+            </div>
+
+            <table class="confirmation-table">
+              <tr>
+                <td>Patient Name</td>
+                <td id="confirmedPatientName">--</td>
+              </tr>
+              <tr>
+                <td>Patient ID</td>
+                <td id="confirmedPatientId">--</td>
+              </tr>
+              <tr>
+                <td>Doctor</td>
+                <td id="confirmedDoctor">--</td>
+              </tr>
+              <tr>
+                <td>Specialization</td>
+                <td id="confirmedSpecialty">--</td>
+              </tr>
+              <tr>
+                <td>Date &amp; Time</td>
+                <td id="confirmedDateTime">--</td>
+              </tr>
+              <tr>
+                <td>Reason for Visit</td>
+                <td id="confirmedReason">--</td>
+              </tr>
+              <tr>
+                <td>Status</td>
+                <td><span style="color:var(--success);font-weight:600;">Upcoming</span></td>
+              </tr>
+            </table>
+
+            <div style="display:flex;gap:12px;justify-content:center;margin-top:1.5rem;flex-wrap:wrap;">
+              <button class="btn btn-primary" onclick="showSection('appointmentsSection')" id="viewConfirmedApptsBtn">View My Appointments</button>
+              <button class="btn btn-outline" onclick="resetBookingWizard()" id="bookAnotherBtn">Book Another Appointment</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Supabase JS Client v2 & Config -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js?v=3.1"></script>
+  <script src="script.js?v=3.1"></script>
+</body>
+</html>

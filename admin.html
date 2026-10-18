@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="description" content="Admin Dashboard - Booking status and appointment oversight.">
+  <title>Admin Dashboard - SmartCare</title>
+  <link rel="stylesheet" href="styles.css?v=3.1">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="nav-logo">
+        <div class="logo-icon">+</div>
+        <span>SmartCare</span>
+      </a>
+      <div class="nav-links">
+        <a href="doctors.html">Available Doctors</a>
+        <a href="patient.html">Patient</a>
+        <a href="admin.html" class="active">Admin</a>
+        <a href="#" class="nav-login-btn" id="adminLogoutNav" onclick="adminLogout()" style="display:none;">Logout</a>
+      </div>
+      <div class="hamburger" id="hamburger">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Admin Login Overlay -->
+  <div class="admin-login-overlay" id="adminLoginOverlay">
+    <div class="admin-login-card">
+      <h2>Admin Login</h2>
+      <p class="subtitle">Enter your credentials to access the dashboard</p>
+      <form id="adminLoginForm">
+        <div class="form-group">
+          <label for="adminUsername">Username</label>
+          <input type="text" id="adminUsername" placeholder="Enter admin username" required>
+        </div>
+        <div class="form-group">
+          <label for="adminPassword">Password</label>
+          <input type="password" id="adminPassword" placeholder="Enter admin password" required>
+        </div>
+        <button type="submit" class="btn btn-primary" id="adminLoginBtn" style="width:100%;justify-content:center;margin-top:0.5rem;">Login to Dashboard</button>
+        <p class="error-msg" id="adminError">Invalid username or password.</p>
+      </form>
+      <div class="credentials-hint">
+        <strong>Demo:</strong> admin / admin123
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard-layout hidden" id="dashboardContent">
+    <main class="dashboard-main admin-main-container">
+      <div class="dash-header" style="justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px;margin-bottom:1.5rem;">
+        <div>
+          <h1 style="font-size:1.6rem;font-weight:700;margin:0 0 4px 0;">Booking Status</h1>
+          <p style="color:var(--text-muted);font-size:0.88rem;margin:0;">Manage and update patient appointment booking statuses in real time</p>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="renderAdminDashboard()" title="Refresh records" style="display:inline-flex;align-items:center;gap:6px;">
+          <span>&#8635;</span> Refresh
+        </button>
+      </div>
+
+
+
+      <!-- Booking Status Records Container -->
+      <div class="form-section" style="margin-top:1.25rem;">
+        <div class="booking-records-header">
+          <h2 style="font-size:1.15rem;margin:0;">Appointment Booking Records</h2>
+          <span id="bookingResultsCount" style="font-size:0.85rem;color:var(--text-muted);">Loading bookings...</span>
+        </div>
+        <div id="adminAppointments" class="appointments-list" style="margin-top:1rem;"></div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Supabase JS Client v2 & Config -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js?v=3.1"></script>
+  <script src="script.js?v=3.1"></script>
+</body>
+</html>
